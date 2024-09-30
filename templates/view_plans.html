@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Available Plans</h1>
+<p>Your Credit Balance: <strong>{{ balance }}</strong></p>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Plan Name</th>
+            <th>Cost (Credits)</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for plan in plans %}
+            <tr>
+                <td>{{ plan.name }}</td>
+                <td>{{ plan.cost }}</td>
+                <td>
+                    <form action="{{ url_for('purchase_plan') }}" method="post">
+                        <input type="hidden" name="plan_id" value="{{ plan.id }}">
+                        <button type="submit" class="btn btn-primary">Purchase</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

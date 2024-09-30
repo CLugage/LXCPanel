@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>{{ SITE_TITLE }} - Terminal</title>
+    <style>
+        html {
+            font-family: arial;
+        }
+        body {
+            overflow-y: hidden;
+            background: black;
+        }
+        #terminal {
+            width: 100%;
+            height: calc(100% - 27.5px);
+            margin-top: 5px;
+        }
+        .header {
+            background: white;
+            width: 100%;
+            padding: 8px;
+            margin: -8px 0px 0px -8px;
+            font-weight: bold;
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@4.11.0/css/xterm.css" />
+</head>
+
+<body>
+    <div class="header">
+        <a href="#" style="font-size: 1.4em; text-decoration: none; color:black">{{ SITE_TITLE }} - Terminal</a>
+        <span style="font-size: small">status: <span id="status">connected</span></span>
+    </div>
+    
+    <div id="terminal"></div>
+
+    <!-- xterm -->
+    <script src="https://unpkg.com/xterm@4.11.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://unpkg.com/xterm-addon-web-links@0.4.0/lib/xterm-addon-web-links.js"></script>
+    <script src="https://unpkg.com/xterm-addon-search@0.8.0/lib/xterm-addon-search.js"></script>
+
+    <script>
+        var instanceName = "{{ instance.name }}";
+    
+        const term = new Terminal({
+            cursorBlink: true,
+            macOptionIsMeta: true,
+            scrollback: true,
+        });
+    
+        const fit = new FitAddon.FitAddon();
+        term.loadAddon(fit);
+        term.loadAddon(new WebLinksAddon.WebLinksAddon());
+        term.loadAddon(new SearchAddon.SearchAddon());
+    
+        term.open(document.getElementById("terminal"));
+        fit.fit();
+    
+        const status = document.getElementById("status");
+    
+        // Start terminal by sending a POST request
+        fetch(`http://45.137.70.53:8080/terminal/${instanceName}`, {
+            method: 'POST'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to start terminal');
+            }
+            // Now that the terminal is started, you can open the EventSource for output
+            const eventSource = new EventSource(`http://45.137.70.53:8080/terminal/${instanceName}`);
+    
+            eventSource.onmessage = function(event) {
+                term.write(event.data);  // Write the output from the server to the terminal
+            };
+    
+            eventSource.onerror = function(error) {
+                console.error('Error receiving terminal output:', error);
+                eventSource.close();  // Close the connection on error
+            };
+        })
+        .catch(error => console.error('There was a problem with the terminal operation:', error));
+    
+        // Handle terminal data input
+        term.onData((data) => {
+            console.log("Sending input to server:", data);
+            fetch(`/send_input/${instanceName}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ input: data })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') {
+                    console.error('Failed to send input:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending input:', error);
+            });
+        });
+    
+        // Handle resizing of the terminal
+        window.addEventListener('resize', fitToscreen);
+    
+        function fitToscreen() {
+            fit.fit();
+        }
+    
+        // Custom key event handler for copy/paste functionality
+        function customKeyEventHandler(e) {
+            if (e.type !== "keydown") {
+                return true;
+            }
+            if (e.ctrlKey && e.shiftKey) {
+                const key = e.key.toLowerCase();
+                if (key === "v") {
+                    navigator.clipboard.readText().then((toPaste) => {
+                        term.write(toPaste);
+                    });
+                    return false;
+                } else if (key === "c" || key === "x") {
+                    const toCopy = term.getSelection();
+                    navigator.clipboard.writeText(toCopy);
+                    term.focus();
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        term.attachCustomKeyEventHandler(customKeyEventHandler);
+    </script>
+    
+    
+</body>
+</html>

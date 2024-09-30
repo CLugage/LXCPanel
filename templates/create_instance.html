@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Instance</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Create Instance</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Instance Name:</label>
+                <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="plan">Select Plan:</label>
+                <select class="form-control" name="plan" required>
+                    {% for plan in plans %}
+                        <option value="{{ plan.name }}">
+                            {{ plan.name }} - RAM: {{ plan.ram }}, Disk: {{ plan.disk }} - Cost: {{ plan.cost }} credits
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="node">Select Node:</label>
+                <select class="form-control" name="node" required>
+                    {% for node in nodes %}
+                        <option value="{{ node.id }}">{{ node.name }} ({{ node.ip_address }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Instance</button>
+        </form>
+    </div>
+</body>
+</html>

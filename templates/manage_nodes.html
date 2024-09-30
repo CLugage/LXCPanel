@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Manage Nodes</h1>
+<form method="POST">
+    <input type="text" name="name" placeholder="Node Name" required>
+    <input type="text" name="ip_address" placeholder="Node Address" required>
+    <button type="submit">Add Node</button>
+</form>
+
+<h2>Existing Nodes</h2>
+<ul>
+    {% for node in nodes %}
+    <li>
+        {{ node.name }} - {{ node.ip_address }} - 
+        <strong>{{ 'Active' if node.is_active else 'Inactive' }}</strong>
+        <a href="{{ url_for('toggle_node', id=node.id) }}">
+            {{ 'Deactivate' if node.is_active else 'Activate' }}
+        </a>
+        <a href="{{ url_for('delete_node', id=node.id) }}" style="color: red;">Delete</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

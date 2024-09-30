@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Basic",
+        "ram": "512MB",
+        "disk": "10GB",
+        "cost": 100
+    },
+    {
+        "name": "Standard",
+        "ram": "1GB",
+        "disk": "20GB",
+        "cost": 200
+    },
+    {
+        "name": "Premium",
+        "ram": "2GB",
+        "disk": "40GB",
+        "cost": 300
+    },
+    {
+        "name": "Pro",
+        "ram": "4GB",
+        "disk": "80GB",
+        "cost": 400
+    }
+]
